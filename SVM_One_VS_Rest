@@ -1,0 +1,89 @@
+function run_disp_SVM()
+
+    % Load the PCA scores and labels from the mat file
+
+    data = load('allvids_pca_scores.mat');
+
+    pcaScores = data.pcaScores;
+
+    
+
+    % Separate the last column (testing/training indicator) and second last column (labels)
+
+    testingIndicator = pcaScores(:, end);
+
+    labels = pcaScores(:, end-1);
+
+    
+
+    % Find the indices for testing and training data
+
+    testingIndices = (testingIndicator == 4);
+
+    
+
+    % Separate training and testing data
+
+    trainingData = pcaScores(~testingIndices, 1:end-2);
+
+    trainingLabels = labels(~testingIndices);
+
+    testingData = pcaScores(testingIndices, 1:end-2);
+
+    testingLabels = labels(testingIndices);
+
+    
+
+    % Train the SVM classifier using fitcecoc
+
+    model = fitcecoc(trainingData, trainingLabels);
+
+    
+
+    % Predict labels for testing data
+
+    predictedLabels = predict(model, testingData);
+
+    
+
+    % Calculate the accuracy of the SVM classifier
+
+    accuracy = sum(predictedLabels == testingLabels) / numel(testingLabels) * 100;
+
+    
+
+    % Display the accuracy of the SVM classifier
+
+    disp('SVM Accuracy:');
+
+    disp(accuracy);
+
+    
+
+    % Print the results for all subjects
+
+    disp('Subject Results:');
+
+    subjects = unique(testingLabels);
+
+    numSubjects = numel(subjects);
+
+    for i = 1:numSubjects
+
+        subject = subjects(i);
+
+        subjectIndices = (testingLabels == subject);
+
+        subjectPredictions = predictedLabels(subjectIndices);
+
+        subjectAccuracy = sum(subjectPredictions == subject) / numel(subjectPredictions) * 100;
+
+        disp(['Subject ' num2str(subject) ':']);
+
+        disp(['Accuracy: ' num2str(subjectAccuracy)]);
+
+        disp(['Predictions: ' mat2str(subjectPredictions)]);
+
+    end
+
+end
